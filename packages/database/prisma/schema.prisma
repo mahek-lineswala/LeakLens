@@ -1,0 +1,223 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  BUSINESS_OWNER
+  ACCOUNTANT
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INVITED
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  role           Role         @default(BUSINESS_OWNER)
+  status         UserStatus   @default(ACTIVE)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  reports        Report[]
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Organization {
+  id                 String             @id @default(uuid())
+  name               String
+  slug               String             @unique
+  subscriptionStatus String             @default("FREE") // FREE, PRO, ENTERPRISE
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  users              User[]
+  expenses           Expense[]
+  invoices           Invoice[]
+  receipts           Receipt[]
+  alerts             Alert[]
+  reports            Report[]
+  subscriptionLeaks  SubscriptionLeak[]
+
+  @@index([slug])
+}
+
+enum ExpenseStatus {
+  PENDING
+  ANALYZED
+  FLAGGED
+  APPROVED
+  REJECTED
+}
+
+model Expense {
+  id             String        @id @default(uuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  uploadedById   String
+  amount         Float
+  currency       String        @default("USD")
+  category       String
+  merchant       String
+  date           DateTime
+  status         ExpenseStatus @default(PENDING)
+  invoiceId      String?       @unique
+  invoice        Invoice?      @relation("ExpenseToInvoice", fields: [invoiceId], references: [id])
+  receiptId      String?       @unique
+  receipt        Receipt?      @relation("ExpenseToReceipt", fields: [receiptId], references: [id])
+  ocrScore       Float?
+  matchedLeakId  String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([date])
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Invoice {
+  id             String         @id @default(uuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  expense        Expense?       @relation("ExpenseToInvoice")
+  fileUrl        String
+  fileKey        String
+  status         DocumentStatus @default(PENDING)
+  invoiceNumber  String?
+  billingDate    DateTime?
+  dueDate        DateTime?
+  totalAmount    Float?
+  taxAmount      Float?
+  vendorName     String?
+  vendorAddress  String?
+  detectedIban   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model Receipt {
+  id             String         @id @default(uuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  expense        Expense?       @relation("ExpenseToReceipt")
+  fileUrl        String
+  fileKey        String
+  status         DocumentStatus @default(PENDING)
+  merchantName   String?
+  transactionDate DateTime?
+  totalAmount    Float?
+  taxAmount      Float?
+  paymentMethod  String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  RESOLVED
+  MUTED
+}
+
+enum AlertType {
+  DUPLICATE_EXPENSE
+  UNUSUAL_TRANSACTION
+  SUBSCRIPTION_LEAK
+  INVOICE_FRAUD
+}
+
+model Alert {
+  id             String        @id @default(uuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  type           AlertType
+  severity       AlertSeverity @default(WARNING)
+  status         AlertStatus   @default(ACTIVE)
+  message        String
+  metadata       Json?
+  resolvedById   String?
+  resolvedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+}
+
+enum ReportType {
+  MONTHLY_SUMMARY
+  LEAK_DETECTION
+  TAX_COMPLIANCE
+}
+
+enum ReportStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Report {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  generatedById  String
+  generatedBy    User         @relation(fields: [generatedById], references: [id])
+  type           ReportType
+  status         ReportStatus @default(PENDING)
+  name           String
+  fileUrl        String?
+  filters        Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model SubscriptionLeak {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  serviceName          String
+  estimatedMonthlyCost Float
+  frequency            String       @default("MONTHLY")
+  status               String       @default("ACTIVE") // ACTIVE, RESOLVED, IGNORED
+  detectedDate         DateTime     @default(now())
+  description          String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}

@@ -1,0 +1,44 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.22.3",
+    "zod": "^3.22.4",
+    "zustand": "^4.5.2",
+    "@tanstack/react-query": "^5.28.4",
+    "react-hook-form": "^7.51.1",
+    "@hookform/resolvers": "^3.3.4",
+    "recharts": "^2.12.3",
+    "lucide-react": "^0.359.0",
+    "@leaklens/shared": "*",
+    "@leaklens/types": "*",
+    "@leaklens/ui": "*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^9.20.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "globals": "^15.0.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^5.1.6",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.18"
+  }
+}
