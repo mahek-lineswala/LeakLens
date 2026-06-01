@@ -20,24 +20,28 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 };
 
 // JWT Handlers
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'leaklens_access_secret_fallback_key';
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'leaklens_refresh_secret_fallback_key';
+const requireEnv = (value: string | undefined, name: string): string => {
+  if (!value || !value.trim()) {
+    throw new Error(`${name} is required. Set it in your .env file.`);
+  }
+  return value;
+};
 
 export const generateAccessToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+  return jwt.sign(payload, requireEnv(process.env.JWT_ACCESS_SECRET, 'JWT_ACCESS_SECRET'), {
     expiresIn: '15m',
   });
 };
 
 export const generateRefreshToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+  return jwt.sign(payload, requireEnv(process.env.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET'), {
     expiresIn: '7d',
   });
 };
 
 export const verifyAccessToken = (token: string): JWTPayload => {
   try {
-    return jwt.verify(token, ACCESS_TOKEN_SECRET) as JWTPayload;
+    return jwt.verify(token, requireEnv(process.env.JWT_ACCESS_SECRET, 'JWT_ACCESS_SECRET')) as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired access token');
   }
@@ -45,7 +49,7 @@ export const verifyAccessToken = (token: string): JWTPayload => {
 
 export const verifyRefreshToken = (token: string): JWTPayload => {
   try {
-    return jwt.verify(token, REFRESH_TOKEN_SECRET) as JWTPayload;
+    return jwt.verify(token, requireEnv(process.env.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET')) as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired refresh token');
   }

@@ -4,11 +4,27 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { formatSuccess, formatError, AppError } from '@leaklens/shared';
 
 import { authRoutes } from './modules/auth/auth.routes';
 
+// In this monorepo, Turbo runs packages with their own CWD (e.g. apps/api),
+// so a root-level .env won't be found by default. We try CWD first, then fall back
+// to the monorepo root.
 dotenv.config();
+if (!process.env.DATABASE_URL) {
+  const rootEnvPath = path.resolve(__dirname, '../../../.env');
+  if (fs.existsSync(rootEnvPath)) {
+    dotenv.config({ path: rootEnvPath });
+  }
+}
+
+const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 const app = express();
 
@@ -16,7 +32,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: corsOrigins,
     credentials: true,
   })
 );
