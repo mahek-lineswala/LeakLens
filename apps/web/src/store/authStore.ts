@@ -17,7 +17,7 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName: string, lastName: string, organizationName?: string) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
   clearError: () => void;
@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
@@ -67,13 +68,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (email, password, firstName, lastName, organizationName) => {
+  register: async (email, password, firstName, lastName) => {
     set({ isLoading: true, error: null });
     try {
       const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, firstName, lastName, organizationName }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
       const result = await response.json();
@@ -97,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      await fetch(`${API_URL}/logout`, { method: 'POST' });
+      await fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' });
     } catch (err) {
       console.warn('Logout request failed on server, clearing local session anyway.', err);
     } finally {
@@ -115,7 +117,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       // 1. Attempt to refresh accessToken using HttpOnly refresh token cookie
-      const refreshResponse = await fetch(`${API_URL}/refresh`, { method: 'POST' });
+      const refreshResponse = await fetch(`${API_URL}/refresh`, { method: 'POST', credentials: 'include' });
       const refreshResult = await refreshResponse.json();
 
       if (!refreshResult.success) {

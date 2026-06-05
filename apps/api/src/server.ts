@@ -1,9 +1,10 @@
 import { app } from './app';
+import { env } from './config/env';
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.PORT;
 
 const server = app.listen(PORT, () => {
-  console.log(`[LeakLens Server] Running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`[LeakLens Server] Running on port ${PORT} in ${env.NODE_ENV} mode`);
 });
 
 // Graceful shutdowns on deployment platforms (e.g. Render, AWS, Heroku)

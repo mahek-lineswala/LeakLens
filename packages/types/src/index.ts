@@ -24,23 +24,57 @@ export interface Organization {
 }
 
 export type ExpenseStatus = 'PENDING' | 'ANALYZED' | 'FLAGGED' | 'APPROVED' | 'REJECTED';
+export type UploadStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
 export interface Expense {
   id: string;
-  organizationId: string;
+  organizationId?: string | null;
   uploadedById: string;
+  uploadId?: string | null;
   amount: number;
   currency: string;
   category: string;
   merchant: string;
+  vendor?: string | null;
   date: Date;
+  transactionDate?: Date | null;
   status: ExpenseStatus;
+  invoiceNumber?: string | null;
+  summary?: string | null;
+  riskScore?: number | null;
+  duplicateExpense?: boolean;
+  subscriptionDetected?: boolean;
+  fraudIndicators?: string[];
+  anomalies?: string[];
+  estimatedSavings?: number | null;
+  recommendations?: string[];
   invoiceId?: string | null;
   receiptId?: string | null;
   ocrScore?: number | null;
   matchedLeakId?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Upload {
+  id: string;
+  organizationId?: string | null;
+  uploadedById: string;
+  originalName: string;
+  fileUrl: string;
+  cloudinaryPublicId: string;
+  fileType: string;
+  fileSize: number;
+  status: UploadStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OCRResult {
+  id: string;
+  uploadId: string;
+  rawText: string;
+  createdAt: Date;
 }
 
 export type DocumentStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';

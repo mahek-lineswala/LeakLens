@@ -22,7 +22,6 @@ export default function AuthPage({ setCurrentPage, authMode, setAuthMode }: Auth
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [orgName, setOrgName] = useState('');
   const [formErr, setFormErr] = useState<string | null>(null);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -43,7 +42,7 @@ export default function AuthPage({ setCurrentPage, authMode, setAuthMode }: Auth
           setFormErr('First and Last names are required.');
           return;
         }
-        await register(email, password, firstName, lastName, orgName || undefined);
+        await register(email, password, firstName, lastName);
       }
     } catch (err: any) {
       setFormErr(err.message || 'Authentication failed.');
@@ -159,20 +158,6 @@ export default function AuthPage({ setCurrentPage, authMode, setAuthMode }: Auth
                 />
               </div>
             </div>
-
-            {authMode === 'signup' && (
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Organization Name (Optional)</label>
-                <input 
-                  type="text" 
-                  placeholder="Acme Corp"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-[#090d16] border border-border-glass rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#5c8bf7] transition-all"
-                />
-                <p className="text-[10px] text-slate-500 leading-tight">Providing a company name provisions an isolated multi-tenant organization automatically.</p>
-              </div>
-            )}
 
             <button 
               type="submit" 

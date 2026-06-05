@@ -32,6 +32,7 @@ model User {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   reports        Report[]
+  uploads        Upload[]     @relation("UserUploads")
 
   @@index([organizationId])
   @@index([email])
@@ -51,6 +52,7 @@ model Organization {
   alerts             Alert[]
   reports            Report[]
   subscriptionLeaks  SubscriptionLeak[]
+  uploads            Upload[]
 
   @@index([slug])
 }
@@ -63,17 +65,37 @@ enum ExpenseStatus {
   REJECTED
 }
 
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model Expense {
   id             String        @id @default(uuid())
-  organizationId String
-  organization   Organization  @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   uploadedById   String
+  uploadId       String?       @unique
+  upload         Upload?       @relation(fields: [uploadId], references: [id])
   amount         Float
   currency       String        @default("USD")
   category       String
   merchant       String
+  vendor         String?
   date           DateTime
+  transactionDate DateTime?
   status         ExpenseStatus @default(PENDING)
+  invoiceNumber  String?
+  summary        String?
+  riskScore      Int?
+  duplicateExpense Boolean     @default(false)
+  subscriptionDetected Boolean @default(false)
+  fraudIndicators String[]     @default([])
+  anomalies      String[]      @default([])
+  estimatedSavings Float?
+  recommendations String[]     @default([])
   invoiceId      String?       @unique
   invoice        Invoice?      @relation("ExpenseToInvoice", fields: [invoiceId], references: [id])
   receiptId      String?       @unique
@@ -86,6 +108,39 @@ model Expense {
   @@index([organizationId])
   @@index([status])
   @@index([date])
+  @@index([uploadId])
+}
+
+model Upload {
+  id                String       @id @default(uuid())
+  organizationId    String?
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+  uploadedById      String
+  uploadedBy        User         @relation("UserUploads", fields: [uploadedById], references: [id])
+  originalName      String
+  fileUrl           String
+  cloudinaryPublicId String
+  fileType          String
+  fileSize          Int
+  status            UploadStatus @default(PENDING)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  ocrResult         OCRResult?
+  expense           Expense?
+
+  @@index([organizationId])
+  @@index([uploadedById])
+  @@index([status])
+}
+
+model OCRResult {
+  id        String   @id @default(uuid())
+  uploadId  String   @unique
+  upload    Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  rawText   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([uploadId])
 }
 
 enum DocumentStatus {

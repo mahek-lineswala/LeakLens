@@ -3,25 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
 import { formatSuccess, formatError, AppError } from '@leaklens/shared';
 
+import { env } from './config/env';
 import { authRoutes } from './modules/auth/auth.routes';
+import { uploadRoutes } from './modules/upload/routes/upload.routes';
 
-// In this monorepo, Turbo runs packages with their own CWD (e.g. apps/api),
-// so a root-level .env won't be found by default. We try CWD first, then fall back
-// to the monorepo root.
-dotenv.config();
-if (!process.env.DATABASE_URL) {
-  const rootEnvPath = path.resolve(__dirname, '../../../.env');
-  if (fs.existsSync(rootEnvPath)) {
-    dotenv.config({ path: rootEnvPath });
-  }
-}
-
-const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+const corsOrigins = (env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
@@ -65,6 +53,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // 5. Auth Module Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // 6. Centralized Error Handling Middleware
 app.use((err: any, req: Request, res: Response, _next: NextFunction) => {

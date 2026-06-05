@@ -14,10 +14,6 @@ export const registerSchema = z.object({
     lastName: z
       .string({ required_error: 'Last name is required.' })
       .min(1, 'Last name cannot be empty.'),
-    organizationName: z
-      .string()
-      .min(2, 'Organization name must be at least 2 characters long.')
-      .optional(),
   }),
 });
 
